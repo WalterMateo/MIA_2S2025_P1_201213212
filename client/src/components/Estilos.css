@@ -1,0 +1,135 @@
+*{
+margin: 0;
+padding: 0;
+
+}
+
+body {
+    background-color: #012129; /* Color de fondo de la página */
+    color: #100cf3; /* Color del texto */
+}
+nav{
+    background-color: gray;
+    width: 100%;
+}
+nav a{
+    text-decoration: none;
+    color: black;
+    background-color: #012129;
+    display:block;
+    padding: 2px 10px; 
+
+}
+
+nav a:hover{
+    background-color: rgb(117, 172, 117);
+}
+
+.Menu > li{
+    float: left;
+    width: 200px;
+    text-align: center;
+}
+
+li ul{
+    display: none;
+    position: absolute;
+    width: 200px;
+}
+
+li:hover > ul{
+    display: block;
+}
+
+nav ul {
+    list-style: none;
+    
+}
+
+.contenedor{
+    width: 100%;
+    max-width: 95%;
+    margin: 20px auto;
+    display: grid;
+    grid-gap: 1px;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(3, auto);
+
+}
+.contenedor > div{
+    background-color: #012129;
+    color: #fcfcfc; /* Color del texto */
+
+    padding: 10px;
+    border-radius: 20px; 
+    align-items: center;
+
+}
+
+.contenedor > Header{
+
+    color: rgb(255, 255, 255)    ;
+   grid-column: span 2;
+}
+
+.contenedor > nav{
+
+    background-color: #012129;
+    color: rgb(255, 255, 255)    ;
+   grid-column: span 2;
+
+}
+
+
+
+.centered-table {
+    background-color: white;
+    color:black;
+    width: 80%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    text-align: center;
+    font-family: Arial, sans-serif;
+}
+/*
+.centered-table th,
+.centered-table td {
+    border: 1px solid #dddddd;
+    text-align: center;
+    padding: 8px;
+}
+
+.centered-table th {
+    background-color: #f2f2f2;
+}
+
+.bold {
+    font-weight: bold;
+}
+*/
+/* Cambiar el color de fondo de la cabecera de la tabla */
+.centered-table thead {
+    background-color: #473dd3; /* Verde */
+    color: white; /* Texto en blanco */
+  }
+  
+  /* Cambiar el color del borde de las celdas */
+  .centered-table th, .centered-table td {
+    border: 1px solid #dddddd;
+    padding: 8px;
+  }
+  
+  /* Cambiar el color de fondo de las filas */
+  .centered-table tr:nth-child(even) {
+    background-color: #f2f2f2; /* Fila par con fondo gris claro */
+  }
+  
+  /* Cambiar el color de fondo cuando el ratón pase por encima */
+  .centered-table tr:hover {
+    background-color: #ddd; /* Gris oscuro */
+  }
+  
+  /* Cambiar color del texto de las celdas */
+  .centered-table td {
+    color: #333; /* Texto en gris oscuro */
+  }
