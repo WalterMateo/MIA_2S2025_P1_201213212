@@ -65,7 +65,7 @@ func PrintEBR(data EBR) {
 		data.PartMount))
 }
 
-type SuperBlock struct {
+type Superblock struct {
 	S_filesystem_type   int32    // Guarda el número que identifica el sistema de archivos utilizado
 	S_inodes_count      int32    // Cantidad total de inodos en el sistema de archivos
 	S_blocks_count      int32    // Cantidad total de bloques en el sistema de archivos
@@ -85,7 +85,7 @@ type SuperBlock struct {
 	S_block_start       int32    // Guardara el inicio de la tabla de bloques
 }
 
-func PrintSuperBlock(sb SuperBlock) {
+func PrintSuperblock(sb Superblock) {
 	fmt.Println("====== Superblock ======")
 	fmt.Printf("S_filesystem_type: %d\n", sb.S_filesystem_type)
 	fmt.Printf("S_inodes_count: %d\n", sb.S_inodes_count)
@@ -133,11 +133,11 @@ func PrintInode(inode Inode) {
 	fmt.Println("===================")
 }
 
-type FolderBlock struct {
+type Folderblock struct {
 	B_content [4]Content // Cada bloque de carpeta puede contener hasta 4 entradas (archivos o subcarpetas)
 }
 
-func PrintFolderBlock(folderblock FolderBlock) {
+func PrintFolderblock(folderblock Folderblock) {
 	fmt.Println("====== Folder Block ======")
 	for i, content := range folderblock.B_content {
 		fmt.Printf("Content %d: Name: %s, Inodo: %d\n", i, string(content.B_name[:]), content.B_inodo)
@@ -159,11 +159,11 @@ func PrintContent(content Content) {
 }
 */
 
-type FileBlock struct {
+type Fileblock struct {
 	B_content [64]byte // Cada bloque de archivo puede almacenar hasta 64 bytes de datos
 }
 
-func PrintFileBlock(fileblock FileBlock) {
+func PrintFileblock(fileblock Fileblock) {
 	fmt.Println("====== File Block ======")
 	fmt.Printf("B_content: %s\n", string(fileblock.B_content[:]))
 	fmt.Println("========================")

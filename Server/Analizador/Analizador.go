@@ -3,9 +3,12 @@ package Analizador
 import (
 	"CLASE4/FileSystem"
 	"CLASE4/Gestion"
-	"bufio"   // Para leer la entrada del usuario
-	"flag"    // Para manejar parametros y opciones de comandos
-	"fmt"     // para imprimir
+	"CLASE4/User"
+	"bufio" // Para leer la entrada del usuario
+	"flag"  // Para manejar parametros y opciones de comandos
+	"fmt"   // para imprimir
+
+	//"io/fs"
 	"os"      // Para manejar archivos y errores ----> segun el aux para ingresar mediante consola
 	"regexp"  //buscar y extraer parametros de la entrada
 	"strings" // Para manipular cadenas de texto
@@ -59,6 +62,10 @@ func AnalyzeCommand(command string, params string) {
 		fn_mount(params)
 	} else if strings.Contains(command, "mkfs") {
 		fn_mkfs(params)
+	} else if strings.Contains(command, "rmdisk") {
+		fn_rmdisk(params)
+	} else if strings.Contains(command, "login") {
+		fn_login(params)
 	} else if strings.Contains(command, "salir") {
 		fmt.Println("Saliedo del programa... ")
 		os.Exit(0) // Termina la ejecucion del programa
@@ -229,7 +236,7 @@ func fn_mkfs(params string) {
 	fs := flag.NewFlagSet("mkfs", flag.ExitOnError)
 	id := fs.String("id", "", "Identificador de la particion")
 	type_ := fs.String("type", "full", "Tipo de formateo")
-	//fs_ := fs.String("fs", "2fs", "Fs")			-----------------> para el segundo proyecto
+	fs_ := fs.String("fs", "2fs", "Fs") //-----------------> para el segundo proyecto
 
 	// Parse the imput strings, not os.Args
 	matches := re.FindAllStringSubmatch(params, -1)
@@ -258,6 +265,78 @@ func fn_mkfs(params string) {
 	}
 
 	//Llamar a la funcion
-	FileSystem.Mkfs(*id, *type_)
+	FileSystem.Mkfs(*id, *type_, *fs_) //-----------------> para el segundo proyecto
+
+}
+
+func fn_rmdisk(params string) {
+	//definir flags
+	fs := flag.NewFlagSet("rmdisk", flag.ExitOnError)
+	path := fs.String("path", "", "Ruta del disco a eliminar")
+	// Parse the imput strings, not os.Args
+	fs.Parse(os.Args[1:])
+	matches := re.FindAllStringSubmatch(params, -1)
+
+	for _, match := range matches {
+		flagName := match[1]
+		flagValue := strings.ToLower(match[2])
+
+		flagValue = strings.Trim(flagValue, "\"")
+
+		switch flagName {
+		case "path":
+			fs.Set(flagName, flagValue)
+		default:
+			fmt.Println("Error: flag no encontrado")
+		}
+	}
+
+	// Validaciones
+	if *path == "" {
+		fmt.Println("Error: El path es un parametro obligatorio.")
+		return
+	}
+
+	// Llamamos a la funcion para eliminar el disco
+	err := os.Remove(*path)
+	if err != nil {
+		fmt.Printf("Error: no se pude eliminar el disco en la ruta %s: %v\n", *path, err)
+		return
+	}
+	fmt.Printf("Disco en la ruta %s eliminado correctamente. \n", *path)
+
+}
+
+func fn_login(params string) {
+	fs := flag.NewFlagSet("login", flag.ExitOnError)
+	user := fs.String("user", "", "Usuario")
+	pass := fs.String("pass", "", "Contraseña")
+	id := fs.String("id", "", "ID de la partición")
+	// Parse the imput strings, not os.Args
+	fs.Parse(os.Args[1:])
+	matches := re.FindAllStringSubmatch(params, -1)
+
+	//procesar el input
+	for _, match := range matches {
+		flagName := match[1]  // match[1]: Captura y guarda el nombre del flag (por ejemplo, "size", "unit", "fit", "path")
+		flagValue := match[2] // match[2]: Captura y guarda el valor del flag (por ejemplo, "3000", "k", "bf", "/home/cerezo/Disks/disk1.bin")
+
+		flagValue = strings.Trim(flagValue, "\"") //Elimina las comillas de la entrada ejemplo "size" -> size
+
+		switch flagName {
+		case "user", "pass", "id":
+			fs.Set(flagName, flagValue)
+		default:
+			fmt.Println("Error: flag no encontrado")
+		}
+	}
+
+	// Validaciones
+	if *user == "" || *pass == "" || *id == "" {
+		fmt.Println("Error: user, pass e id son parametros obligatorios.")
+		return
+	}
+
+	User.Login(*user, *pass, *id)
 
 }

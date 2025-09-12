@@ -27,9 +27,12 @@ nav a:hover{
 
 .Menu > li{
     float: left;
-    width: 200px;
+    width: 100px;
     text-align: center;
 }
+
+
+
 
 li ul{
     display: none;

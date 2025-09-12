@@ -11,21 +11,21 @@ import (
 )
 
 // func Mkfs(id string, type_ string, fs_ string) {
-func Mkfs(id string, type_ string) {
+func Mkfs(id string, type_ string, fs_ string) {
 
 	fmt.Println("===========INICIO MKFS============")
 	fmt.Println("ID:", id)
 	fmt.Println("TYPE:", type_)
-	//fmt.Println("FS:", fs_)
+	fmt.Println("FS:", fs_)
 
 	//Buscar la particion en el listado de particiones montadas
 	var mountedPartition Gestion.MountedPartition
 	var partitionFound bool
 
 	//Iterar sobre las particiones montadas y buscar la particion que coincida con el id
-	for _, partition := range Gestion.GetMountedPartitions() {
+	for _, partitions := range Gestion.GetMountedPartitions() {
 		for _, partition := range partitions {
-			if partition.Id == id {
+			if partition.ID == id {
 				mountedPartition = partition
 				partitionFound = true
 				break

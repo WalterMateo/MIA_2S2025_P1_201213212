@@ -13,34 +13,68 @@ import (
 
 // Estructura para representar una partición montada
 type MountedPartition struct {
-	Path   string
-	Name   string
-	ID     string
-	Status byte // 0: no montada, 1: montada
+	Path     string
+	Name     string
+	ID       string
+	Status   byte // 0: no montada, 1: montada
+	LoggedIn bool // Indica si hay un usuario logeado en esta partición
 }
 
-var mountedPartitions = make(map[string][]MountedPartition) // Mapa para almacenar las particiones montadas, la clave es el ID del disco
+// Mapa para almacenar las particiones montadas, la clave es el ID del disco
+var mountedPartitions = make(map[string][]MountedPartition)
 
+// Función para imprimir las particiones montadas
+// PrintMountedPartitions imprime en la consola todas las particiones montadas.
 func PrintMountedPartitions() {
+
 	fmt.Println("Particiones montadas actualmente:")
+
 	if len(mountedPartitions) == 0 {
 		fmt.Println("No hay particiones montadas.")
 		return
 	}
 
+	//Itera sobre cada disco montado y sus particiones
+
 	for diskID, partitions := range mountedPartitions {
 		fmt.Printf("Disco ID: %s\n", diskID)
 		for _, partition := range partitions {
-			fmt.Printf(" - Partición Name: %s, ID: %s, Path: %s, Status: %c\n",
-				partition.Name, partition.ID, partition.Path, partition.Status)
+			//detemina si la particion esta logueada o no
+			loginStatus := "No"
+			if partition.LoggedIn {
+				loginStatus = "Sí"
+			}
+
+			//Imprime los detalles de la particion
+			fmt.Printf(" - Partición Name: %s, ID: %s, Path: %s, Status: %c, LoggedIn: %s\n",
+				partition.Name, partition.ID, partition.Path, partition.Status, loginStatus)
+
 		}
 	}
+
 	fmt.Println("")
 }
 
-// Función para obtener las particiones montadas
+// GetMountedPartitions devuelve el mapa de particiones montadas.
+// Retorna un mapa donde la clave es el ID del disco y el valor es una lista de particiones montadas en ese disco.
 func GetMountedPartitions() map[string][]MountedPartition {
 	return mountedPartitions
+}
+
+// MarkPartitionAsLoggedIn busca una partición por su ID y la marca como logueada (LoggedIn = true).
+func MarkPartitionAsLoggedIn(id string) {
+	//Recorre todas las particiones montadas en los discos
+	for diskID, partitions := range mountedPartitions { // Recorre cada disco montado
+		for i, partition := range partitions { //
+			//Si la particion coincide con el ID Buscado, se marca como logueada
+			if partition.ID == id {
+				mountedPartitions[diskID][i].LoggedIn = true
+				fmt.Printf("Partición con ID %s marcada como logueada.\n", id)
+				return
+			}
+		}
+	}
+	fmt.Printf("No se encontró una partición con ID %s para marcar como logueada.\n", id)
 }
 
 func Mkdisk(size int, fit string, unit string, path string) {
