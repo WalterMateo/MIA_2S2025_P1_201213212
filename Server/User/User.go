@@ -11,26 +11,25 @@ import (
 )
 
 func Login(user string, pass string, id string) {
-	fmt.Println("===========INICIO LOGIN============")
-	fmt.Println("USER:", user)
-	fmt.Println("PASS:", pass)
-	fmt.Println("ID:", id)
+	fmt.Println("======Start LOGIN======")
+	fmt.Println("User:", user)
+	fmt.Println("Pass:", pass)
+	fmt.Println("Id:", id)
 
-	//Obtener las partriciones montadas
+	// Obtener las particiones montadas
 	mountedPartitions := Gestion.GetMountedPartitions()
 	var filepath string
 	var partitionFound bool
 	var login bool = false
 
-	//Verificar si el usuario ya esa logeado en alguna particion
-
-	for _, partitions := range mountedPartitions { // Recorre todas las particiones montadas
-		for _, partition := range partitions { // Recorre todas las particiones montadas
-			if partition.ID == id && partition.LoggedIn { // Si la particion ya tiene un usuario logeado
+	// Verificar si el usuario ya está logueado en alguna partición
+	for _, partitions := range mountedPartitions {
+		for _, partition := range partitions {
+			if partition.ID == id && partition.LoggedIn { // Si la partición ya tiene un usuario logueado
 				fmt.Println("Ya existe un usuario logueado!")
 				return
 			}
-			if partition.ID == id { // Encuentra la particion correcta
+			if partition.ID == id { // Encuentra la partición correcta
 				filepath = partition.Path
 				partitionFound = true
 				break
@@ -40,19 +39,20 @@ func Login(user string, pass string, id string) {
 			break
 		}
 	}
+
 	// Si no se encontró la partición montada, se detiene el proceso
 	if !partitionFound {
-		fmt.Println("Error: No se encontro ninguna particion montada con el ID proporcionado.")
+		fmt.Println("Error: No se encontró ninguna partición montada con el ID proporcionado")
 		return
 	}
 
-	//Abrir el archivo del sistema de archivos binario
+	// Abrir el archivo del sistema de archivos binario
 	file, err := Utilities.OpenFile(filepath)
 	if err != nil {
 		fmt.Println("Error: No se pudo abrir el archivo:", err)
 		return
 	}
-	defer file.Close() //cierra el archivo al final de la ejecucion
+	defer file.Close() // Cierra el archivo al final de la ejecución
 
 	var TempMBR Structs.MBR
 	// Leer el MBR (Master Boot Record) del archivo binario
@@ -61,22 +61,21 @@ func Login(user string, pass string, id string) {
 		return
 	}
 
-	//Imprimir la informacion del MBR
+	// Imprimir información del MBR
 	Structs.PrintMBR(TempMBR)
-	fmt.Println("-----------------------------------")
+	fmt.Println("-------------")
 
 	var index int = -1
-	// Buscar la particion en el MBR por su ID
-
+	// Buscar la partición en el MBR por su ID
 	for i := 0; i < 4; i++ {
-		if TempMBR.Partitions[i].Size != 0 { // Verifica que la particion tenga un tamaño mayor a 0
-			if strings.Contains(string(TempMBR.Partitions[i].Id[:]), id) { // Compara el ID con el nombre de la particion
-				fmt.Println("Particion encontrada en el MBR")
-				if TempMBR.Partitions[i].Status == '1' { // Verifica que la particion esta montada
-					fmt.Println("Particion montada")
+		if TempMBR.Partitions[i].Size != 0 { // Verifica que la partición tenga tamaño
+			if strings.Contains(string(TempMBR.Partitions[i].Id[:]), id) { // Compara el ID
+				fmt.Println("Partition found")
+				if TempMBR.Partitions[i].Status[0] == '1' { // Verifica si está montada
+					fmt.Println("Partition is mounted")
 					index = i
 				} else {
-					fmt.Println("Error: La particion no esta montada")
+					fmt.Println("Partition is not mounted")
 					return
 				}
 				break
@@ -84,104 +83,105 @@ func Login(user string, pass string, id string) {
 		}
 	}
 
-	//Si se encontro la particion, imprimir su informacion
+	// Si se encontró la partición, imprimir su información
 	if index != -1 {
 		Structs.PrintPartition(TempMBR.Partitions[index])
 	} else {
-		fmt.Println("Error: No se encontro la particion en el MBR")
+		fmt.Println("Partition not found")
 		return
 	}
 
-	var tempSuperblock Structs.Superblock // Variable para almacenar el superbloque
-	// Leer el superbloque de la particion
-	if err := Utilities.ReadObject(file, &tempSuperblock, int64(TempMBR.Partitions[index].Start)); err != nil { // Lee el superbloque desde el inicio de la particion con el ID proporcionado ademas del tamaño del MBR desde el inicio
-		fmt.Println("Error: No se pudo leer el Superbloque:", err)
+	var tempSuperblock Structs.Superblock
+	// Leer el Superblock de la partición
+	if err := Utilities.ReadObject(file, &tempSuperblock, int64(TempMBR.Partitions[index].Start)); err != nil {
+		fmt.Println("Error: No se pudo leer el Superblock:", err)
 		return
 	}
 
-	//Buscar el archivo de usuarios "/users.txt" en el sistema de archivos
-	indexInode := InitSearch("/user.txt", file, tempSuperblock) // Obtener el índice del inodo del archivo de usuarios
+	// Buscar el archivo de usuarios "/users.txt" dentro del sistema de archivos
+	indexInode := InitSearch("/users.txt", file, tempSuperblock)
 
-	var crrInode Structs.Inode // Variable para almacenar el inodo actual
-	// Leer el inodo del archivo ""user.txt""
-	if err := Utilities.ReadObject(file, &crrInode, int64(tempSuperblock.S_inode_start+indexInode*int32(binary.Size(Structs.Inode{})))); err != nil { // Lee el inodo desde el inicio de la tabla de inodos
+	var crrInode Structs.Inode
+	// Leer el Inodo del archivo "users.txt"
+	if err := Utilities.ReadObject(file, &crrInode, int64(tempSuperblock.S_inode_start+indexInode*int32(binary.Size(Structs.Inode{})))); err != nil {
 		fmt.Println("Error: No se pudo leer el Inodo:", err)
 		return
 	}
 
-	//Obtener el contenido del archivo users.txt desde los bloques del inodo
-	data := GetInodeFileData(crrInode, file, tempSuperblock) // Obtener los datos del archivo desde los bloques del inodo
+	// Obtener el contenido del archivo users.txt desde los bloques del inodo
+	data := GetInodeFileData(crrInode, file, tempSuperblock)
 
-	//Dividir el contenido del archivo en lineas
-	lines := strings.Split(data, "\n") // Dividir el contenido en líneas
+	// Dividir el contenido del archivo en líneas
+	lines := strings.Split(data, "\n")
 
-	//Iterar a traves de las lineas para verificar las credenciales
+	// Iterar a través de las líneas para verificar las credenciales
 	for _, line := range lines {
-		words := strings.Split(line, ",") // Dividir la línea en palabras
+		words := strings.Split(line, ",")
 
-		//Si la linea tiene 5 elementos, verificar si el usuario y contraseña coinciden
-		if len(words) == 5 { // Verifica que la línea tenga 5 elementos (ID, Tipo, Grupo, Usuario, Contraseña)
-			if (strings.Contains(words[3], user)) && (strings.Contains(words[4], pass)) { // Verifica si el usuario y la contraseña coinciden con los datos del archivo
+		// Si la línea tiene 5 elementos, verificar si el usuario y contraseña coinciden
+		if len(words) == 5 {
+			if (strings.Contains(words[3], user)) && (strings.Contains(words[4], pass)) {
 				login = true
 				break
 			}
 		}
 	}
 
-	//Imprimir la informacion del inodo
+	// Imprimir la información del Inodo
 	fmt.Println("Inode", crrInode.I_block)
 
-	//Si las credenciales son correctas, marcar la particion como logeada
+	// Si las credenciales son correctas, marcar la partición como logueada
 	if login {
-		fmt.Println("Usuario Logeado con exito")
-		Gestion.MarkPartitionAsLoggedIn(id) // Marcar la partición como logeada
+		fmt.Println("Usuario logueado con éxito")
+		Gestion.MarkPartitionAsLoggedIn(id) // Marca la partición como logueada
+	} else {
+		fmt.Println("Error: Credenciales incorrectas")
 	}
-	fmt.Println("===========FIN LOGIN============")
+	fmt.Println("======End LOGIN======")
 }
 
 func InitSearch(path string, file *os.File, tempSuperblock Structs.Superblock) int32 {
-	fmt.Println("==========START BUSQUEDA INICIAL============")
+	fmt.Println("======Start BUSQUEDA INICIAL ======")
 	fmt.Println("path:", path)
 
-	//Dividir la ruta en carpetas usando "/" como separador
+	// Dividir la ruta en partes usando "/" como separador
 	TempStepsPath := strings.Split(path, "/")
 	StepsPath := TempStepsPath[1:] // Omitir el primer elemento vacío si la ruta empieza con "/"
 
 	fmt.Println("StepsPath:", StepsPath, "len(StepsPath):", len(StepsPath))
-	for _, step := range StepsPath { // Iterar sobre cada paso en la ruta
-		fmt.Println("Step:", step) // Imprimir el paso actual
+	for _, step := range StepsPath {
+		fmt.Println("step:", step)
 	}
 
 	var Inode0 Structs.Inode
-
-	//Leer el inodo raiz (primer inodo del sistema de archivos)
+	// Leer el inodo raíz (primer inodo del sistema de archivos)
 	if err := Utilities.ReadObject(file, &Inode0, int64(tempSuperblock.S_inode_start)); err != nil {
-		return -1 // Si hay un error al leer el inodo, retornar -1
+		return -1 // Retornar -1 si hubo un error al leer
 	}
 
-	fmt.Println("===========END BUSQUEDA INICIAL============")
+	fmt.Println("======End BUSQUEDA INICIAL======")
 
-	//Llamar a la funcion que busca el inodo del archivo segun la ruta
-	return SearchInodeByPath(StepsPath, Inode0, file, tempSuperblock)
+	// Llamar a la función que busca el inodo del archivo según la ruta
+	return SarchInodeByPath(StepsPath, Inode0, file, tempSuperblock)
 }
 
-// Stack
+// stack
 func pop(s *[]string) string {
-	lastIndex := len(*s) - 1 // Obtener el índice del último elemento
-	last := (*s)[lastIndex]  // Obtener el último elemento
-	*s = (*s)[:lastIndex]    // Remover el último elemento del slice
-	return last              // Retornar el último elemento
+	lastIndex := len(*s) - 1
+	last := (*s)[lastIndex]
+	*s = (*s)[:lastIndex]
+	return last
 }
 
-func SearchInodeByPath(StepsPath []string, Inode Structs.Inode, file *os.File, tempSuperblock Structs.Superblock) int32 {
-	fmt.Println("===========START Busqueda Inodo Por Path============")
+func SarchInodeByPath(StepsPath []string, Inode Structs.Inode, file *os.File, tempSuperblock Structs.Superblock) int32 {
+	fmt.Println("======Start BUSQUEDA INODO POR PATH======")
 
 	index := int32(0) // Contador de bloques procesados en el inodo actual
 
-	//Extrae el primer elemento del path y elimina los espacios en blanco
+	// Extrae el primer elemento del path y elimina espacios en blanco
 	SearchedName := strings.Replace(pop(&StepsPath), " ", "", -1)
 
-	fmt.Println("=========================SearchedName: ", SearchedName)
+	fmt.Println("========== SearchedName:", SearchedName)
 
 	// Iterar sobre los bloques del inodo
 	for _, block := range Inode.I_block {
@@ -215,7 +215,7 @@ func SearchInodeByPath(StepsPath []string, Inode Structs.Inode, file *os.File, t
 							}
 
 							// Llamada recursiva para seguir con la búsqueda
-							return SearchInodeByPath(StepsPath, NextInode, file, tempSuperblock)
+							return SarchInodeByPath(StepsPath, NextInode, file, tempSuperblock)
 						}
 					}
 				}
@@ -231,32 +231,33 @@ func SearchInodeByPath(StepsPath []string, Inode Structs.Inode, file *os.File, t
 }
 
 func GetInodeFileData(Inode Structs.Inode, file *os.File, tempSuperblock Structs.Superblock) string {
-	fmt.Println("===========START CONTENIDO DEL BLOQUE============")
-	index := int32(0) // Contador de bloques procesados en el inodo
-	//Define content as a string
+	fmt.Println("======Start CONTENIDO DEL BLOQUE======")
+	index := int32(0)
+	// define content as a string
 	var content string
 
-	// Iterar sobre los bloques del inodo
+	// Iterate over i_blocks from Inode
 	for _, block := range Inode.I_block {
-		if block != -1 { // Si el bloque es válido (no está vacío)
-			//Dentro de los primeros 12 bloques, son bloques directos
+		if block != -1 {
+			//Dentro de los directos
 			if index < 13 {
 				var crrFileBlock Structs.Fileblock
-				// Leer el bloque de archivo desde el archivo binario
+				// Read object from bin file
 				if err := Utilities.ReadObject(file, &crrFileBlock, int64(tempSuperblock.S_block_start+block*int32(binary.Size(Structs.Fileblock{})))); err != nil {
 					return ""
 				}
 
-				content += string(crrFileBlock.B_content[:]) // Concatenar el contenido del bloque al contenido total
+				content += string(crrFileBlock.B_content[:])
 
 			} else {
-				fmt.Println("indirectos") // Falta implementar acceso a bloques indirectos
+				fmt.Print("indirectos")
 			}
 		}
-		index++ // Incrementar índice para saber si son bloques directos o indirectos
+		index++
 	}
-	fmt.Println("===========END CONTENIDO DEL BLOQUE============")
-	return content // Retornar el contenido completo del archivo
+
+	fmt.Println("======End CONTENIDO DEL BLOQUE======")
+	return content
 }
 
 // MKUSER

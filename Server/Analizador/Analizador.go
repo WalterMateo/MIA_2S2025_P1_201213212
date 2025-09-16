@@ -231,7 +231,7 @@ func fn_mount(params string) {
 	Gestion.Mount(*path, lowercaseName)
 }
 
-func fn_mkfs(params string) {
+func fn_mkfs(input string) {
 	//definir flags
 	fs := flag.NewFlagSet("mkfs", flag.ExitOnError)
 	id := fs.String("id", "", "Identificador de la particion")
@@ -239,7 +239,7 @@ func fn_mkfs(params string) {
 	fs_ := fs.String("fs", "2fs", "Fs") //-----------------> para el segundo proyecto
 
 	// Parse the imput strings, not os.Args
-	matches := re.FindAllStringSubmatch(params, -1)
+	matches := re.FindAllStringSubmatch(input, -1)
 
 	for _, match := range matches {
 		flagName := match[1]
@@ -247,7 +247,7 @@ func fn_mkfs(params string) {
 		flagValue = strings.Trim(flagValue, "\"")
 
 		switch flagName {
-		case "id", "type":
+		case "id", "type", "fs":
 			fs.Set(flagName, flagValue)
 		default:
 			fmt.Println("Error: flag no encontrado")
@@ -307,14 +307,14 @@ func fn_rmdisk(params string) {
 
 }
 
-func fn_login(params string) {
+func fn_login(input string) {
 	fs := flag.NewFlagSet("login", flag.ExitOnError)
 	user := fs.String("user", "", "Usuario")
 	pass := fs.String("pass", "", "Contraseña")
 	id := fs.String("id", "", "ID de la partición")
 	// Parse the imput strings, not os.Args
 	fs.Parse(os.Args[1:])
-	matches := re.FindAllStringSubmatch(params, -1)
+	matches := re.FindAllStringSubmatch(input, -1)
 
 	//procesar el input
 	for _, match := range matches {
@@ -332,10 +332,12 @@ func fn_login(params string) {
 	}
 
 	// Validaciones
-	if *user == "" || *pass == "" || *id == "" {
-		fmt.Println("Error: user, pass e id son parametros obligatorios.")
-		return
-	}
+	/*
+		if *user == "" || *pass == "" || *id == "" {
+			fmt.Println("Error: user, pass e id son parametros obligatorios.")
+			return
+		}
+	*/
 
 	User.Login(*user, *pass, *id)
 

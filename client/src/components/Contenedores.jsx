@@ -103,9 +103,7 @@ const cambiarPlaceholder = (nuevoTexto) => {
                 /// Tratando de conectar con el servidor
                 
                 function showValue() {
-                    //console.log("1111111111111111111111111111111111111111111111111111111111111");
-                    //console.log(getTexto);
-                    //console.log("1111111111111111111111111111111111111111111111111111111111111");
+                    
 
                     
                     POST("http://localhost:3000/interpretar", getTexto ).then(res => {
@@ -138,9 +136,9 @@ const cambiarPlaceholder = (nuevoTexto) => {
             
                 <nav className="nav">
                     <ul className="Menu">
-                        <li><a href="#"  class="bold" >Archivo</a>
+                        <li><a href="#"  class="bold" >Menu</a>
                             <ul>
-                                <li><a href="#" class="bold" >Nuevo</a></li>
+                                <li><a href="#" class="bold" >Limpiar</a></li>
                                 <li><a href="#" className="bold" onClick={(e) => { e.preventDefault(); fileInputRef.current.click(); }}>Abrir</a>
   <input
     type="file"
@@ -150,28 +148,22 @@ const cambiarPlaceholder = (nuevoTexto) => {
   />
 </li>
 
-                                <li><a href="#"  class="bold" >Guardar</a></li>
+                                
                             </ul>
                         </li>
                         <li><a href="#"  class="bold"> Ejecutar</a>
                             <ul>
-                                <li><a href="#"  class="bold" onClick={showValue}>Compilar</a></li>
+                                <li><a href="#"  class="bold" onClick={showValue}>Correr Programa</a></li>
                                 
                             </ul>
                         </li>
-                        <li><a href="#"  class="bold">Reportes</a>
-                            <ul>     
-                                <li><a href="/errores"  class="bold" target="_blank">Reporte de Errores</a></li>
-                                <li><a href="#"  class="bold" >Generar Árbol AST</a></li>
-                                <li><a href="/reporte"   class="bold" target="_blank" >Reporte de Tabla de Símbolos</a></li>
-                        </ul>
-                        </li>
+                       
 
                     </ul>
                 </nav>
             
             <header className="Heater">
-                <h1> Compiladores 1</h1>
+                <h1> Proyecto 1 [GoDisk]</h1>
             </header>
             
             <div className="Widget-1">
@@ -181,7 +173,7 @@ const cambiarPlaceholder = (nuevoTexto) => {
             
             </div>
             <div className="Widget-2">
-                <h2>Consola</h2>
+                <h2>Salida</h2>
 
             <textarea className="areaTexto" placeholder={textopantalla} readOnly style={{width: '850px', height: '500px', backgroundColor: '#002b36', color: '#839496', border: '2px solid #073642',  padding: '10px', resize: 'none'  }}></textarea>
 

@@ -364,7 +364,7 @@ func Fdisk(size int, path string, name string, unit string, type_ string, fit st
 
 }
 
-func Mount(name string, path string) {
+func Mount(path string, name string) {
 	fmt.Println("========INICIO MOUNT========")
 	file, err := Utilities.OpenFile(path)
 	if err != nil {

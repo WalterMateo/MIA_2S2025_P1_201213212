@@ -12,17 +12,16 @@ import (
 
 // func Mkfs(id string, type_ string, fs_ string) {
 func Mkfs(id string, type_ string, fs_ string) {
+	fmt.Println("======INICIO MKFS======")
+	fmt.Println("Id:", id)
+	fmt.Println("Type:", type_)
+	fmt.Println("Fs:", fs_)
 
-	fmt.Println("===========INICIO MKFS============")
-	fmt.Println("ID:", id)
-	fmt.Println("TYPE:", type_)
-	fmt.Println("FS:", fs_)
-
-	//Buscar la particion en el listado de particiones montadas
+	// Buscar la partición montada por ID
 	var mountedPartition Gestion.MountedPartition
 	var partitionFound bool
 
-	//Iterar sobre las particiones montadas y buscar la particion que coincida con el id
+	// Iterar sobre las particiones montadas y buscar la partición que coincida con el ID
 	for _, partitions := range Gestion.GetMountedPartitions() {
 		for _, partition := range partitions {
 			if partition.ID == id {
@@ -36,50 +35,49 @@ func Mkfs(id string, type_ string, fs_ string) {
 		}
 	}
 
-	// Si no se encuentra la particion, se sale de la funcion
+	// Si no se encuentra la partición, se sale de la función
 	if !partitionFound {
-		fmt.Println("Error: Particion no encontrada.")
+		fmt.Println("Particion no encontrada")
 		return
 	}
 
-	//verificar si la particion esta montada (estado '1')
+	// Verificar si la partición está montada (estado '1')
 	if mountedPartition.Status != '1' {
-		fmt.Println("Error: La particion aun no esta montada.")
+		fmt.Println("La particion aun no esta montada")
 		return
 	}
 
-	//Abrir el archivo binario  de la particion
+	// Abrir el archivo binario de la partición
 	file, err := Utilities.OpenFile(mountedPartition.Path)
 	if err != nil {
-		fmt.Println("Error al abrir el archivo:", err)
 		return
 	}
 
-	//Leer el MBR (Master Boot Record) del archivo binario
+	// Leer el MBR (Master Boot Record) del archivo binario
 	var TempMBR Structs.MBR
 	if err := Utilities.ReadObject(file, &TempMBR, 0); err != nil {
 		return
 	}
 
-	//Imprimir el MBR para la depuracion
+	// Imprimir el MBR para depuración
 	Structs.PrintMBR(TempMBR)
 
-	//Buscar la particion dentro del MBR que coincida con el ID proporcionado
+	// Buscar la partición dentro del MBR que coincida con el ID proporcionado
 	var index int = -1
 	for i := 0; i < 4; i++ {
-		if TempMBR.Partitions[i].Size != 0 { //Verifica que la particion tenga un tamaño mayor a 0
-			if strings.Contains(string(TempMBR.Partitions[i].Id[:]), id) { //Verifica si el ID de la particion en el MBR contiene el ID proporcionado
-				index = i //Si coincide, guarda el indice de la particion
+		if TempMBR.Partitions[i].Size != 0 {
+			if strings.Contains(string(TempMBR.Partitions[i].Id[:]), id) {
+				index = i
 				break
 			}
-		} // Verificar que la particion exista (tenga un tamaño mayor a 0)
+		}
 	}
 
-	//Si no se encuentra la particion, se sale de la funcion
-	if index == -1 {
+	// Si no se encuentra la partición, se sale de la función
+	if index != -1 {
 		Structs.PrintPartition(TempMBR.Partitions[index])
 	} else {
-		fmt.Println("Error: Particion no encontrada en el MBR.")
+		fmt.Println("Particion no encontrada (2)")
 		return
 	}
 
@@ -92,8 +90,6 @@ func Mkfs(id string, type_ string, fs_ string) {
 	} else {
 		fmt.Print("Error por el momento solo está disponible 2FS.")
 	}
-
-	///////////////////////////////////////////////////////////////////1:37:00/////////////////////////////////////////////////////////////////////
 	denominador := denominador_base + temp
 	n := int32(numerador / denominador)
 
